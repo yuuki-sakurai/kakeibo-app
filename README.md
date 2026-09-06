@@ -186,3 +186,7 @@ npm run build
 ```bash
 php artisan optimize:clear
 ```
+
+## 家計簿API
+
+共通MySQL向けの家計簿テーブルとAPI v1を追加しています。[DB設計・API仕様](docs/household-api.md)を参照してください。Docker環境では環境リポジトリのREADMEに従って起動します。
