@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\ExpenseItem;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
@@ -10,6 +11,12 @@ use Tests\TestCase;
 class ExpenseCsvImportTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->actingAs(User::factory()->create());
+    }
 
     private const HEADER = "日付,店舗,カテゴリ,品目,単価,数量\n";
 

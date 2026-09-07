@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\ExpenseAccess;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreExpenseCategoryRequest extends FormRequest
@@ -20,7 +21,11 @@ class StoreExpenseCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        return ['name' => ['required', 'string', 'max:50', 'not_regex:/[\x00-\x1F\x7F]/', 'unique:expense_categories,name', 'unique:expense_categories,id']];
+        return ['name' => ['required', 'string', 'max:50', 'not_regex:/[\x00-\x1F\x7F]/', function ($attribute, $value, $fail) {
+            if (ExpenseAccess::categories()->where(fn ($q) => $q->where('name', $value)->orWhere('id', $value))->exists()) {
+                $fail('このカテゴリ名はすでに使用されています。');
+            }
+        }]];
     }
 
     public function messages(): array

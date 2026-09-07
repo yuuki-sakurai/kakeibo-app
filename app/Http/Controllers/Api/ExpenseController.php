@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreExpenseRequest;
 use App\Http\Resources\ExpenseResource;
 use App\Models\Expense;
+use App\Services\ExpenseAccess;
 use App\Services\ExpenseService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,18 +22,18 @@ class ExpenseController extends Controller
 
     public function show(Request $request, Expense $expense): JsonResponse
     {
-        return response()->json((new ExpenseResource($expense->load('items')))->resolve($request));
+        return response()->json((new ExpenseResource($this->owned($expense)->load('items')))->resolve($request));
     }
 
     public function update(StoreExpenseRequest $request, Expense $expense, ExpenseService $service): JsonResponse
     {
-        return response()->json((new ExpenseResource($service->update($expense, $request->validated())))->resolve($request));
+        return response()->json((new ExpenseResource($service->update($this->owned($expense), $request->validated())))->resolve($request));
     }
 
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate(['date' => ['required', 'date_format:Y-m-d', 'after_or_equal:1000-01-01', 'before_or_equal:9999-12-31']]);
-        $expenses = Expense::with('items')->where('date', $data['date'])->orderBy('id')->get();
+        $expenses = Expense::with('items')->where('user_id', ExpenseAccess::userId())->where('date', $data['date'])->orderBy('id')->get();
 
         return response()->json(ExpenseResource::collection($expenses)->resolve($request));
     }
@@ -47,8 +48,15 @@ class ExpenseController extends Controller
         return response()->json($service->monthlySummary((int) $data['year'], (int) $data['month']));
     }
 
+    private function owned(Expense $expense): Expense
+    {
+        abort_unless($expense->user_id === ExpenseAccess::userId(), 404);
+
+        return $expense;
+    }
+
     public function stores(): JsonResponse
     {
-        return response()->json(Expense::query()->select('store')->distinct()->orderBy('store')->pluck('store'));
+        return response()->json(Expense::query()->where('user_id', ExpenseAccess::userId())->select('store')->distinct()->orderBy('store')->pluck('store'));
     }
 }

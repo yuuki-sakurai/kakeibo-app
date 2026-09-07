@@ -11,6 +11,7 @@ class ExpenseService
     {
         return DB::transaction(function () use ($data) {
             $expense = Expense::create([
+                'user_id' => ExpenseAccess::userId(),
                 'date' => $data['date'],
                 'store' => $data['store'],
                 'category_id' => $data['category'],
@@ -28,7 +29,7 @@ class ExpenseService
     public function update(Expense $expense, array $data): Expense
     {
         return DB::transaction(function () use ($expense, $data) {
-            $expense = Expense::query()->lockForUpdate()->findOrFail($expense->id);
+            $expense = Expense::query()->where('user_id', ExpenseAccess::userId())->lockForUpdate()->findOrFail($expense->id);
             $expense->update([
                 'date' => $data['date'],
                 'store' => $data['store'],
@@ -51,6 +52,7 @@ class ExpenseService
         $end = sprintf('%04d-%02d-%02d', $year, $month, (int) date('t', strtotime($start)));
         // Aggregate item rows in SQL; count each expense only once.
         $rows = DB::table('expenses')
+            ->where('expenses.user_id', ExpenseAccess::userId())
             ->join('expense_items', 'expenses.id', '=', 'expense_items.expense_id')
             ->whereBetween('expenses.date', [$start, $end])
             ->select('expenses.date', 'expenses.category_id')

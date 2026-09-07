@@ -27,7 +27,7 @@ class ExpenseCsvService
         $stream = fopen('php://temp', 'r+');
         fwrite($stream, str_replace(["\r\n", "\r"], "\n", $text));
         rewind($stream);
-        $categories = DB::table('expense_categories')->pluck('id', 'name')->all();
+        $categories = ExpenseAccess::categories()->pluck('id', 'name')->all();
         $records = [];
         $errors = [];
         $line = 1;
@@ -123,7 +123,7 @@ class ExpenseCsvService
             'total' => array_sum(array_map(fn ($r) => $r['items'][0]['unitPrice'] * $r['items'][0]['quantity'], $records)),
             'rows' => array_slice($records, 0, 20),
             'unknownCategories' => array_values(array_unique(array_column($records, 'categoryName'))),
-            'alreadyImported' => DB::table('expense_imports')->where('fingerprint', $this->fingerprint($records))->exists(),
+            'alreadyImported' => ExpenseAccess::imports()->where('fingerprint', $this->fingerprint($records))->exists(),
         ];
     }
 
@@ -136,14 +136,14 @@ class ExpenseCsvService
                 sort($names, SORT_STRING);
                 $resolved = [];
                 foreach ($names as $name) {
-                    $category = DB::table('expense_categories')->where('name', $name)->first();
+                    $category = ExpenseAccess::categories()->where('name', $name)->first();
                     if (! $category) {
                         if (! in_array($name, $approvedCategories, true)) {
                             throw ValidationException::withMessages(['categories' => '未登録カテゴリ「'.$name.'」の追加が承認されていません。内容を確認してください。']);
                         }
                         // The unique name constraint also handles concurrent category creation.
-                        DB::table('expense_categories')->insertOrIgnore(['id' => (string) Str::ulid(), 'name' => $name]);
-                        $category = DB::table('expense_categories')->where('name', $name)->lockForUpdate()->firstOrFail();
+                        DB::table('expense_categories')->insertOrIgnore(['id' => (string) Str::ulid(), 'name' => $name, 'user_id' => ExpenseAccess::userId()]);
+                        $category = ExpenseAccess::categories()->where('name', $name)->lockForUpdate()->firstOrFail();
                     }
                     $resolved[$name] = $category->id;
                 }
@@ -155,10 +155,10 @@ class ExpenseCsvService
                 }
                 unset($record);
                 $fingerprint = $this->fingerprint($records);
-                if (DB::table('expense_imports')->where('fingerprint', $fingerprint)->exists()) {
+                if (ExpenseAccess::imports()->where('fingerprint', $fingerprint)->exists()) {
                     return ['importedCount' => 0, 'alreadyImported' => true];
                 }
-                DB::table('expense_imports')->insert(['fingerprint' => $fingerprint, 'expense_count' => count($records), 'created_at' => now()]);
+                DB::table('expense_imports')->insert(['user_id' => ExpenseAccess::userId(), 'fingerprint' => $fingerprint, 'expense_count' => count($records), 'created_at' => now()]);
                 foreach ($records as $record) {
                     $expenses->create($record);
                 }
@@ -166,7 +166,7 @@ class ExpenseCsvService
                 return ['importedCount' => count($records), 'alreadyImported' => false];
             }, 3);
         } catch (UniqueConstraintViolationException $error) {
-            if ($fingerprint === null || ! DB::table('expense_imports')->where('fingerprint', $fingerprint)->exists()) {
+            if ($fingerprint === null || ! ExpenseAccess::imports()->where('fingerprint', $fingerprint)->exists()) {
                 throw $error;
             }
 

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Expense extends Model
 {
-    protected $fillable = ['date', 'store', 'category_id'];
+    protected $fillable = ['user_id', 'date', 'store', 'category_id'];
+
+    protected $casts = ['user_id' => 'integer'];
 
     public function items(): HasMany
     {
