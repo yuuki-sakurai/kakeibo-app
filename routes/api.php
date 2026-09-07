@@ -1,11 +1,19 @@
 <?php
 
+use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\ExpenseController;
+use App\Http\Controllers\Api\ExpenseCsvController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('v1')->group(function () {
+    Route::get('categories', [ExpenseCategoryController::class, 'index']);
+    Route::post('categories', [ExpenseCategoryController::class, 'store']);
+    Route::post('expense-imports/preview', [ExpenseCsvController::class, 'preview']);
+    Route::post('expense-imports', [ExpenseCsvController::class, 'store']);
     Route::get('expenses', [ExpenseController::class, 'index']);
     Route::post('expenses', [ExpenseController::class, 'store']);
+    Route::get('expenses/{expense}', [ExpenseController::class, 'show'])->whereNumber('expense');
+    Route::put('expenses/{expense}', [ExpenseController::class, 'update'])->whereNumber('expense');
     Route::get('monthly-summary', [ExpenseController::class, 'summary']);
     Route::get('stores', [ExpenseController::class, 'stores']);
 });

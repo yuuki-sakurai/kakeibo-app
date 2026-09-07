@@ -25,6 +25,26 @@ class ExpenseService
         });
     }
 
+    public function update(Expense $expense, array $data): Expense
+    {
+        return DB::transaction(function () use ($expense, $data) {
+            $expense = Expense::query()->lockForUpdate()->findOrFail($expense->id);
+            $expense->update([
+                'date' => $data['date'],
+                'store' => $data['store'],
+                'category_id' => $data['category'],
+            ]);
+            $expense->items()->delete();
+            $expense->items()->createMany(array_map(fn ($item) => [
+                'name' => $item['name'],
+                'unit_price' => $item['unitPrice'],
+                'quantity' => $item['quantity'],
+            ], $data['items']));
+
+            return $expense->load('items');
+        });
+    }
+
     public function monthlySummary(int $year, int $month): array
     {
         $start = sprintf('%04d-%02d-01', $year, $month);

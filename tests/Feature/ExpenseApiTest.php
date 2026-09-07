@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Models\Expense;
 use App\Models\ExpenseItem;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Tests\TestCase;
 
 class ExpenseApiTest extends TestCase
@@ -73,6 +75,55 @@ class ExpenseApiTest extends TestCase
         $this->assertDatabaseCount('expense_items', 0);
         $this->getJson('/api/v1/expenses')->assertUnprocessable();
         $this->getJson('/api/v1/monthly-summary?year=2026&month=13')->assertUnprocessable();
+    }
+
+    public function test_edit_updates_detail_and_moves_summary_without_duplicating_expense(): void
+    {
+        $original = $this->postJson('/api/v1/expenses', $this->payload())->assertCreated()->json();
+        $url = '/api/v1/expenses/'.$original['id'];
+        $this->getJson($url)->assertExactJson($original);
+        $changed = $this->payload(['date' => '2026-10-01', 'store' => 'コンビニ', 'category' => 'leisure',
+            'items' => [['name' => 'ビール', 'unitPrice' => 230, 'quantity' => 3]]]);
+        $this->putJson($url, $changed)->assertOk()->assertJsonPath('id', $original['id'])
+            ->assertJsonPath('category', 'leisure')->assertJsonPath('items.0.name', 'ビール')->assertJsonPath('total', 690);
+        $this->assertDatabaseCount('expenses', 1);
+        $this->assertDatabaseCount('expense_items', 1);
+        $this->getJson('/api/v1/expenses?date=2026-09-06')->assertExactJson([]);
+        $this->getJson('/api/v1/monthly-summary?year=2026&month=9')->assertJsonPath('total', 0);
+        $this->getJson('/api/v1/monthly-summary?year=2026&month=10')->assertJsonPath('total', 690)->assertJsonPath('categoryTotals.0.category', 'leisure');
+        $this->getJson('/api/v1/expenses/99999')->assertNotFound();
+        $this->putJson('/api/v1/expenses/99999', $changed)->assertNotFound();
+    }
+
+    public function test_invalid_or_failed_update_preserves_original_items(): void
+    {
+        $original = $this->postJson('/api/v1/expenses', $this->payload())->assertCreated()->json();
+        $url = '/api/v1/expenses/'.$original['id'];
+        foreach ([['category' => 'unknown'], ['items' => []], ['date' => '2026-02-30']] as $overrides) {
+            $this->putJson($url, $this->payload($overrides))->assertUnprocessable();
+            $this->getJson($url)->assertExactJson($original);
+        }
+        ExpenseItem::creating(function () {
+            throw new \RuntimeException('Simulated update failure');
+        });
+        try {
+            $this->putJson($url, $this->payload(['store' => '変更']))->assertStatus(500);
+            $this->getJson($url)->assertExactJson($original);
+        } finally {
+            ExpenseItem::flushEventListeners();
+        }
+    }
+
+    public function test_imported_expense_can_be_edited_and_reimport_does_not_overwrite_it(): void
+    {
+        $csv = "日付,店舗,カテゴリ,品目,単価,数量\n2026-09-06,店,食費,商品,100,1\n";
+        $upload = fn () => ['file' => UploadedFile::fake()->createWithContent('data.csv', $csv), 'encoding' => 'UTF-8'];
+        $this->post('/api/v1/expense-imports', $upload(), ['Accept' => 'application/json'])->assertCreated();
+        $id = Expense::firstOrFail()->id;
+        $this->putJson('/api/v1/expenses/'.$id, $this->payload(['category' => 'leisure']))->assertOk();
+        $this->post('/api/v1/expense-imports', $upload(), ['Accept' => 'application/json'])->assertOk()->assertJsonPath('alreadyImported', true);
+        $this->assertDatabaseCount('expenses', 1);
+        $this->getJson('/api/v1/expenses/'.$id)->assertJsonPath('category', 'leisure')->assertJsonPath('total', 500);
     }
 
     public function test_item_failure_rolls_back_parent_and_previous_items(): void

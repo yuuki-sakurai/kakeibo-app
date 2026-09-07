@@ -19,6 +19,16 @@ class ExpenseController extends Controller
         return response()->json((new ExpenseResource($expense))->resolve($request), 201);
     }
 
+    public function show(Request $request, Expense $expense): JsonResponse
+    {
+        return response()->json((new ExpenseResource($expense->load('items')))->resolve($request));
+    }
+
+    public function update(StoreExpenseRequest $request, Expense $expense, ExpenseService $service): JsonResponse
+    {
+        return response()->json((new ExpenseResource($service->update($expense, $request->validated())))->resolve($request));
+    }
+
     public function index(Request $request): JsonResponse
     {
         $data = $request->validate(['date' => ['required', 'date_format:Y-m-d', 'after_or_equal:1000-01-01', 'before_or_equal:9999-12-31']]);
