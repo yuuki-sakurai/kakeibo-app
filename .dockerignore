@@ -1,0 +1,16 @@
+/.git
+/.env
+/.env.*
+/vendor
+/node_modules
+/tests
+/docs
+/resources/js
+/resources/css
+/public/build
+/public/hot
+/public/storage
+/storage/**
+/bootstrap/cache/*.php
+/database/*.sqlite*
+/npm-debug.log*
