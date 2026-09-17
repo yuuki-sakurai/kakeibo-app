@@ -23,10 +23,12 @@ class StoreExpenseRequest extends FormRequest
                 }
             }],
             'items' => ['required', 'array', 'min:1', 'max:100'],
-            'items.*' => ['required', 'array:name,unitPrice,quantity'],
+            'items.*' => ['required', 'array:name,unitPrice,quantity,taxable,taxRate'],
             'items.*.name' => ['required', 'string', 'max:255'],
             'items.*.unitPrice' => ['required', 'integer', 'min:0', 'max:100000000'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:10000'],
+            'items.*.taxable' => ['sometimes', 'boolean'],
+            'items.*.taxRate' => ['required_if:items.*.taxable,true', 'numeric', 'min:0', 'max:100', 'decimal:0,2'],
         ];
     }
 }

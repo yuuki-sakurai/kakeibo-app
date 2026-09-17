@@ -7,6 +7,22 @@ use Illuminate\Support\Facades\DB;
 
 class ExpenseService
 {
+    private function itemAttributes(array $item): array
+    {
+        $taxable = (bool) ($item['taxable'] ?? false);
+        $rate = $taxable ? (float) $item['taxRate'] : 0;
+        $subtotal = (int) $item['unitPrice'] * (int) $item['quantity'];
+
+        return [
+            'name' => $item['name'],
+            'unit_price' => $item['unitPrice'],
+            'quantity' => $item['quantity'],
+            'taxable' => $taxable,
+            'tax_rate' => $rate,
+            'tax_amount' => intdiv($subtotal * (int) round($rate * 100), 10000),
+        ];
+    }
+
     public function create(array $data): Expense
     {
         return DB::transaction(function () use ($data) {
@@ -16,11 +32,7 @@ class ExpenseService
                 'store' => $data['store'],
                 'category_id' => $data['category'],
             ]);
-            $expense->items()->createMany(array_map(fn ($item) => [
-                'name' => $item['name'],
-                'unit_price' => $item['unitPrice'],
-                'quantity' => $item['quantity'],
-            ], $data['items']));
+            $expense->items()->createMany(array_map(fn ($item) => $this->itemAttributes($item), $data['items']));
 
             return $expense->load('items');
         });
@@ -36,11 +48,7 @@ class ExpenseService
                 'category_id' => $data['category'],
             ]);
             $expense->items()->delete();
-            $expense->items()->createMany(array_map(fn ($item) => [
-                'name' => $item['name'],
-                'unit_price' => $item['unitPrice'],
-                'quantity' => $item['quantity'],
-            ], $data['items']));
+            $expense->items()->createMany(array_map(fn ($item) => $this->itemAttributes($item), $data['items']));
 
             return $expense->load('items');
         });
@@ -56,7 +64,7 @@ class ExpenseService
             ->join('expense_items', 'expenses.id', '=', 'expense_items.expense_id')
             ->whereBetween('expenses.date', [$start, $end])
             ->select('expenses.date', 'expenses.category_id')
-            ->selectRaw('SUM(expense_items.unit_price * expense_items.quantity) AS amount, COUNT(DISTINCT expenses.id) AS expense_count')
+            ->selectRaw('SUM(expense_items.unit_price * expense_items.quantity + expense_items.tax_amount) AS amount, COUNT(DISTINCT expenses.id) AS expense_count')
             ->groupBy('expenses.date', 'expenses.category_id')
             ->orderBy('expenses.date')->orderBy('expenses.category_id')->get();
         $total = (int) $rows->sum('amount');

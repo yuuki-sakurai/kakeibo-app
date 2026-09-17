@@ -19,8 +19,11 @@ class ExpenseResource extends JsonResource
                 'name' => $item->name,
                 'unitPrice' => $item->unit_price,
                 'quantity' => $item->quantity,
+                'taxable' => $item->taxable,
+                'taxRate' => $item->tax_rate,
+                'taxAmount' => $item->tax_amount,
             ])->all(),
-            'total' => $this->items->sum(fn ($item) => $item->unit_price * $item->quantity),
+            'total' => $this->items->sum(fn ($item) => $item->unit_price * $item->quantity + $item->tax_amount),
         ];
     }
 }

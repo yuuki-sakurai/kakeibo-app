@@ -30,6 +30,43 @@ class ExpenseApiTest extends TestCase
         ], $overrides);
     }
 
+    public function test_item_tax_is_saved_and_included_in_detail_and_summary(): void
+    {
+        $input = $this->payload(['items' => [
+            ['name' => '標準', 'unitPrice' => 199, 'quantity' => 2, 'taxable' => true, 'taxRate' => 10],
+            ['name' => '軽減', 'unitPrice' => 101, 'quantity' => 1, 'taxable' => true, 'taxRate' => 8],
+            ['name' => '加算なし', 'unitPrice' => 500, 'quantity' => 1, 'taxable' => false, 'taxRate' => 10],
+        ]]);
+        $created = $this->postJson('/api/v1/expenses', $input)->assertCreated()
+            ->assertJsonPath('total', 1046)->assertJsonPath('items.0.taxAmount', 39)
+            ->assertJsonPath('items.1.taxAmount', 8)->assertJsonPath('items.2.taxAmount', 0)->json();
+        $this->assertDatabaseHas('expense_items', ['id' => $created['items'][0]['id'], 'taxable' => 1, 'tax_rate' => 10, 'tax_amount' => 39]);
+        $this->getJson('/api/v1/expenses/'.$created['id'])->assertExactJson($created);
+        $this->getJson('/api/v1/monthly-summary?year=2026&month=9')
+            ->assertJsonPath('total', 1046)->assertJsonPath('dailyTotals.0.amount', 1046)
+            ->assertJsonPath('categoryTotals.0.amount', 1046);
+
+        $input['items'][0]['taxRate'] = 12.25;
+        $other = $this->postJson('/api/v1/expenses', $input)->assertCreated()->assertJsonPath('items.0.taxAmount', 48)->json();
+        $this->getJson('/api/v1/expenses/'.$created['id'])->assertExactJson($created);
+        $input['items'][0]['taxable'] = false;
+        $this->putJson('/api/v1/expenses/'.$other['id'], $input)->assertOk()
+            ->assertJsonPath('items.0.taxAmount', 0)->assertJsonPath('total', 1007);
+    }
+
+    public function test_invalid_tax_inputs_are_rejected_without_writing(): void
+    {
+        foreach ([-1, 101, 8.123, 'invalid', null] as $rate) {
+            $this->postJson('/api/v1/expenses', $this->payload(['items' => [
+                ['name' => '商品', 'unitPrice' => 100, 'quantity' => 1, 'taxable' => true, 'taxRate' => $rate],
+            ]]))->assertUnprocessable();
+        }
+        $this->postJson('/api/v1/expenses', $this->payload(['items' => [
+            ['name' => '商品', 'unitPrice' => 100, 'quantity' => 1, 'taxable' => true],
+        ]]))->assertUnprocessable();
+        $this->assertDatabaseCount('expenses', 0);
+    }
+
     public function test_create_persists_items_and_calculates_total_then_lists_by_date(): void
     {
         $created = $this->postJson('/api/v1/expenses', $this->payload(['total' => 1]))
