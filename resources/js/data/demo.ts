@@ -1,4 +1,11 @@
-import type { ImportHistory, NavItem, Transaction } from "../types";
+import type {
+    BankAccount,
+    ImportHistory,
+    NavItem,
+    Transaction,
+} from "../types";
+
+export const dashboardDate = new Date(2026, 7, 25);
 
 export const navigationItems: NavItem[] = [
     { key: "home", label: "ホーム", icon: "⌂" },
@@ -49,6 +56,92 @@ export const transactions: Transaction[] = [
         category: "サブスク",
         amount: 1490,
         paymentMonth: "2026年8月",
+    },
+];
+
+transactions.push(
+    {
+        date: "2026/08/10",
+        merchant: "イトーヨーカドー",
+        category: "食費",
+        amount: 5680,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/12",
+        merchant: "マツモトキヨシ",
+        category: "日用品",
+        amount: 2340,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/12",
+        merchant: "ランチ",
+        category: "飲食",
+        amount: 1200,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/15",
+        merchant: "ユニクロ",
+        category: "衣服",
+        amount: 7990,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/18",
+        merchant: "成城石井",
+        category: "食費",
+        amount: 4260,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/21",
+        merchant: "Netflix.com",
+        category: "サブスク",
+        amount: 1490,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/23",
+        merchant: "ENEOS",
+        category: "交通",
+        amount: 6000,
+        paymentMonth: "2026年9月",
+    },
+    {
+        date: "2026/08/25",
+        merchant: "セブン-イレブン",
+        category: "食費",
+        amount: 980,
+        paymentMonth: "2026年9月",
+    },
+);
+
+export const bankAccounts: BankAccount[] = [
+    {
+        id: 1,
+        bankName: "三菱UFJ銀行",
+        branchName: "渋谷支店",
+        accountType: "普通",
+        balance: 286450,
+        color: "#d84b58",
+    },
+    {
+        id: 2,
+        bankName: "楽天銀行",
+        branchName: "サルサ支店",
+        accountType: "普通",
+        balance: 142800,
+        color: "#9a184d",
+    },
+    {
+        id: 3,
+        bankName: "住信SBIネット銀行",
+        branchName: "イチゴ支店",
+        accountType: "普通",
+        balance: 93520,
+        color: "#178c9b",
     },
 ];
 

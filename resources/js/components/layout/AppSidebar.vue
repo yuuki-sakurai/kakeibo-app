@@ -9,7 +9,7 @@ const emit = defineEmits<{ navigate: [page: Page] }>();
 <template>
     <aside>
         <button class="brand" @click="emit('navigate', 'home')">
-            <b>¥</b><strong>クレカ管理</strong>
+            <b>¥</b><strong>俺の家計簿</strong>
         </button>
         <nav>
             <button

@@ -906,3 +906,391 @@ td strong {
         padding: 21px;
     }
 }
+
+/* Household dashboard */
+.dashboard-heading {
+    margin-bottom: 22px;
+}
+
+.spending-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(260px, 0.7fr);
+    margin-bottom: 18px;
+    overflow: hidden;
+}
+
+.spending-hero__main {
+    padding: 28px 30px;
+    background: linear-gradient(135deg, #6558d8 0%, #7669e4 100%);
+    color: #fff;
+}
+
+.section-label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.section-label span {
+    display: grid;
+    width: 26px;
+    height: 26px;
+    place-items: center;
+    border-radius: 8px;
+    background: #ffffff22;
+}
+
+.spending-hero__main h2 {
+    margin: 20px 0 4px;
+    font: 700 36px "DM Sans";
+    letter-spacing: -0.04em;
+}
+
+.spending-hero__main > p,
+.spending-hero__main > small {
+    margin: 0;
+    color: #ffffffbb;
+    font-size: 9px;
+}
+
+.spending-hero__main > small b {
+    color: #fff;
+}
+
+.budget-row {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 28px;
+    font-size: 9px;
+}
+
+.budget-bar {
+    height: 7px;
+    margin: 9px 0;
+    overflow: hidden;
+    border-radius: 10px;
+    background: #ffffff26;
+}
+
+.budget-bar i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: #fff;
+}
+
+.spending-hero__categories {
+    padding: 25px 27px;
+}
+
+.spending-hero__categories > p {
+    margin: 0 0 14px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 600;
+}
+
+.category-rank {
+    display: grid;
+    grid-template-columns: 25px 1fr auto;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 0;
+    border-bottom: 1px solid #f0f1f3;
+    font-size: 10px;
+}
+
+.category-rank:last-child {
+    border-bottom: 0;
+}
+
+.category-rank > span {
+    display: grid;
+    width: 23px;
+    height: 23px;
+    place-items: center;
+    border-radius: 7px;
+    color: #6255d9;
+    background: #f0eefc;
+    font: 700 9px "DM Sans";
+}
+
+.category-rank > b {
+    font: 700 10px "DM Sans";
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(280px, 0.75fr);
+    align-items: start;
+    gap: 18px;
+}
+
+.calendar-panel,
+.account-panel {
+    min-height: 430px;
+}
+
+.calendar-head {
+    min-height: 70px;
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.calendar-nav button {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    place-items: center;
+    border: 1px solid #e2e3e8;
+    border-radius: 7px;
+    background: #fff;
+    font-size: 17px;
+}
+
+.calendar-nav strong {
+    min-width: 84px;
+    font-size: 10px;
+    text-align: center;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-weekdays {
+    padding: 0 16px;
+    border-top: 1px solid #f0f1f3;
+    border-bottom: 1px solid #f0f1f3;
+    color: #9299a4;
+    background: #fafafb;
+    font-size: 8px;
+    text-align: center;
+}
+
+.calendar-weekdays span {
+    padding: 8px 0;
+}
+
+.calendar-weekdays span:first-child {
+    color: #d86469;
+}
+
+.calendar-days {
+    padding: 8px 16px 12px;
+}
+
+.calendar-day {
+    position: relative;
+    display: flex;
+    min-height: 47px;
+    flex-direction: column;
+    align-items: center;
+    padding: 6px 2px;
+    border-radius: 8px;
+    font-size: 8px;
+    cursor: pointer;
+}
+
+.calendar-day:hover:not(.empty) {
+    background: #f6f5fc;
+}
+
+.calendar-day b {
+    font: 600 9px "DM Sans";
+}
+
+.calendar-day small {
+    margin-top: 5px;
+    font: 600 7px "DM Sans";
+}
+
+.calendar-day i {
+    width: 4px;
+    height: 4px;
+    margin-top: 4px;
+    border-radius: 50%;
+    background: #7063d7;
+}
+
+.calendar-day.today b {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    margin-top: -4px;
+    border-radius: 50%;
+    color: #fff;
+    background: #6255d9;
+}
+
+.calendar-day.selected {
+    background: #efedfb;
+    outline: 1px solid #dcd7f8;
+}
+
+.calendar-detail {
+    margin: 0 20px 18px;
+    padding: 12px 14px;
+    border-radius: 9px;
+    background: #f8f8fa;
+}
+
+.calendar-detail > div,
+.calendar-detail > p {
+    display: flex;
+    justify-content: space-between;
+}
+
+.calendar-detail > div {
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e7e8ec;
+    font-size: 9px;
+}
+
+.calendar-detail > p {
+    margin: 8px 0 0;
+    color: #737b88;
+    font-size: 8px;
+}
+
+.calendar-detail .no-spending {
+    justify-content: center;
+}
+
+.calendar-hint {
+    margin: 3px 0 19px;
+    color: #9ba1ab;
+    font-size: 8px;
+    text-align: center;
+}
+
+.account-total {
+    text-align: right;
+}
+
+.account-total small,
+.account-total strong {
+    display: block;
+}
+
+.account-total small {
+    color: var(--muted);
+    font-size: 7px;
+}
+
+.account-total strong {
+    margin-top: 3px;
+    font: 700 14px "DM Sans";
+}
+
+.account-list {
+    border-top: 1px solid #eff0f2;
+}
+
+.account-row {
+    display: grid;
+    width: 100%;
+    grid-template-columns: 38px 1fr auto 12px;
+    align-items: center;
+    gap: 10px;
+    padding: 17px 20px;
+    border: 0;
+    border-bottom: 1px solid #eff0f2;
+    background: #fff;
+    text-align: left;
+}
+
+.account-row:hover {
+    background: #fafafb;
+}
+
+.account-logo {
+    display: grid;
+    width: 35px;
+    height: 35px;
+    place-items: center;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.account-name strong,
+.account-name small {
+    display: block;
+}
+
+.account-name strong {
+    font-size: 9px;
+}
+
+.account-name small {
+    margin-top: 4px;
+    color: #969ca7;
+    font-size: 7px;
+}
+
+.account-balance {
+    font: 700 10px "DM Sans";
+}
+
+.account-row > i {
+    color: #b0b5be;
+    font-size: 17px;
+    font-style: normal;
+}
+
+.account-add {
+    display: block;
+    margin: 15px auto;
+    border: 0;
+    color: #6255d9;
+    background: none;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+@media (max-width: 900px) {
+    .spending-hero,
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .calendar-panel,
+    .account-panel {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 680px) {
+    .spending-hero__main,
+    .spending-hero__categories {
+        padding: 22px 20px;
+    }
+
+    .spending-hero__main h2 {
+        font-size: 31px;
+    }
+
+    .calendar-days,
+    .calendar-weekdays {
+        padding-right: 8px;
+        padding-left: 8px;
+    }
+
+    .calendar-day {
+        min-height: 43px;
+    }
+
+    .calendar-day small {
+        font-size: 6px;
+    }
+}

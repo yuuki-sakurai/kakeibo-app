@@ -4,7 +4,7 @@ const emit = defineEmits<{ upload: [] }>();
 
 <template>
     <header>
-        <span class="mobile-brand">¥　クレカ管理</span>
+        <span class="mobile-brand">¥　俺の家計簿</span>
         <button class="primary top" @click="emit('upload')">
             ＋ CSVを取り込む
         </button>

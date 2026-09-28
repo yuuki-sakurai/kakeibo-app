@@ -21,3 +21,12 @@ export interface ImportHistory {
     excludedCount: number;
     hasWarning: boolean;
 }
+
+export interface BankAccount {
+    id: number;
+    bankName: string;
+    branchName: string;
+    accountType: string;
+    balance: number;
+    color: string;
+}
