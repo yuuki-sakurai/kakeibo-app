@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CreditCardController;
 use App\Http\Controllers\Api\ExpenseCategoryController;
 use App\Http\Controllers\Api\ExpenseController;
 use App\Http\Controllers\Api\ExpenseCsvController;
@@ -14,6 +15,18 @@ Route::prefix('v1')->middleware(['web', PrivateApiResponse::class])->group(funct
     Route::post('auth/register', [AuthController::class, 'register'])->middleware('throttle:5,1');
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::middleware('auth')->group(function () {
+        Route::controller(CreditCardController::class)->group(function () {
+            Route::get('bank-accounts', 'accounts');
+            Route::post('bank-accounts', 'saveAccount');
+            Route::put('bank-accounts/{account}', 'saveAccount')->whereNumber('account');
+            Route::get('credit-cards', 'cards');
+            Route::post('credit-cards', 'saveCard');
+            Route::put('credit-cards/{card}', 'saveCard')->whereNumber('card');
+            Route::get('credit-card-transactions', 'transactions');
+            Route::get('credit-card-overview', 'overview');
+            Route::get('statement-imports', 'imports');
+            Route::post('statement-imports', 'import')->middleware('throttle:20,1');
+        });
         Route::get('categories', [ExpenseCategoryController::class, 'index']);
         Route::post('categories', [ExpenseCategoryController::class, 'store']);
         Route::post('expense-imports/preview', [ExpenseCsvController::class, 'preview']);
