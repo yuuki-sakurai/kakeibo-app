@@ -1,192 +1,41 @@
-# クレカ管理ツール
+# kakeibo-app — 共通Laravel API
 
-クレジットカード会社からダウンロードした利用明細CSVを取り込み、カードごとの利用額、支払予定額、支払日、引き落とし口座を確認するWebアプリケーションです。
+家計簿SPA (`kanntan-kakeibo`) とクレカ管理SPA (`credit-card-front`) が共用するAPIです。画面は各フロントエンドでビルド・配信し、このリポジトリは認証、業務処理、DBマイグレーションを管理します。Vue/Vite/Node.jsの依存はありません。
 
-現在は初期UIを実装しており、EPOSカードの利用を想定したデモデータを表示します。
+## 開発・起動
 
-## 使用技術
-
-- PHP 8.3以上
-- Laravel 13
-- Vue 3
-- TypeScript
-- Vite 8
-- SQLite
-
-## 必要なソフトウェア
-
-事前に以下をインストールしてください。
-
-- PHP 8.3以上（SQLite拡張を含む）
-- Composer 2
-- Node.js 20.19以上、または22.12以上
-- npm
-
-インストール状況は次のコマンドで確認できます。
+推奨は `household-env` のDocker Composeです。PHP 8.4、Composer 2、共通MySQL 8.4を使います。詳細は環境リポジトリのREADMEを参照してください。
 
 ```bash
-php --version
-composer --version
-node --version
-npm --version
+# household-env ディレクトリで実行
+docker compose up -d --build
+docker compose exec kakeibo-app php artisan migrate --force
 ```
 
-## セットアップ
+ホットリロード構成では `docker compose -f compose.dev.yml exec kakeibo-app composer install` で依存を導入し、`php artisan migrate` を実行してください。Laravelのソースはbind mountで反映します。
 
-### 1. リポジトリへ移動
+単体開発は `composer install`、`.env.example` を `.env` にコピー、DB接続と新規環境のAPP_KEYを設定、`php artisan migrate`、`composer dev` の順です。既存APP_KEYは再生成しないでください。
 
-```bash
-cd /path/to/credit-card-manager
-```
+- `/` : APIサービス情報
+- `/up` : ヘルスチェック
+- `/api/v1/*` : JSON API
 
-`/path/to/credit-card-manager` は、このリポジトリを配置したディレクトリに置き換えてください。
+## APIと認証
 
-### 2. SQLiteデータベースを作成
+- [家計簿API](docs/household-api.md)
+- [クレカAPI・CSV形式](docs/credit-card-api.md)
 
-```bash
-touch database/database.sqlite
-```
-
-Windows PowerShellの場合は、次のコマンドを使用します。
-
-```powershell
-New-Item database/database.sqlite -ItemType File -Force
-```
-
-### 3. 初期セットアップを実行
-
-```bash
-composer setup
-```
-
-このコマンドは以下をまとめて実行します。
-
-1. PHP依存パッケージのインストール
-2. `.env` の作成
-3. アプリケーションキーの生成
-4. データベースマイグレーション
-5. Node.js依存パッケージのインストール
-6. フロントエンドの本番ビルド
-
-## アプリケーションの起動
-
-```bash
-composer dev
-```
-
-起動後、ブラウザで次のURLを開きます。
-
-```text
-http://localhost:8000
-```
-
-`composer dev` は、Laravel開発サーバー、キューワーカー、ログ表示、Vite開発サーバーをまとめて起動します。
-
-終了する場合は、起動したターミナルで `Ctrl+C` を押してください。
-
-## 個別にセットアップする場合
-
-`composer setup` を使用せず、各処理を個別に実行する場合は次の手順になります。
-
-```bash
-composer install
-cp .env.example .env
-php artisan key:generate
-touch database/database.sqlite
-php artisan migrate
-npm install
-npm run build
-```
-
-Windows PowerShellでは `cp` の代わりに次を使用してください。
-
-```powershell
-Copy-Item .env.example .env
-```
-
-開発サーバーを個別に起動する場合は、2つのターミナルを使用します。
-
-ターミナル1:
-
-```bash
-php artisan serve
-```
-
-ターミナル2:
-
-```bash
-npm run dev
-```
+両SPAは同じusersテーブルとメール・パスワード認証を使います。フロントの同一オリジン `/api/` をLaravelへプロキシし、セッションCookieとCSRFトークンで認証します。DBは共用し、ユーザーごとにアクセスを制限します。別ドメイン間での自動SSOは実装していません。
 
 ## テスト
 
-Laravelのテストを実行します。
-
 ```bash
 composer test
+vendor/bin/pint --test
 ```
 
-VueとTypeScriptの型チェックを実行します。
+PHPUnitはSQLiteインメモリDBを使います（pdo_sqliteが必要）。実DBで `migrate:fresh` は実行しないでください。
 
-```bash
-npx vue-tsc --noEmit
-```
+## Railway
 
-## フロントエンドのビルド
-
-本番用アセットを生成します。
-
-```bash
-npm run build
-```
-
-生成されたファイルは `public/build` に出力されます。
-
-## 主なディレクトリ
-
-```text
-app/                       Laravelのアプリケーションコード
-database/migrations/       データベースマイグレーション
-resources/css/             共通スタイル
-resources/js/components/   再利用可能なVueコンポーネント
-resources/js/data/         現在のデモ表示用データ
-resources/js/types/        TypeScriptの共通型
-resources/js/views/        各画面のVueコンポーネント
-routes/                     Laravelのルート定義
-tests/                      自動テスト
-```
-
-## トラブルシューティング
-
-### `database/database.sqlite` が存在しない
-
-次のコマンドを実行してから、マイグレーションを再実行します。
-
-```bash
-touch database/database.sqlite
-php artisan migrate
-```
-
-### アプリケーションキーに関するエラーが表示される
-
-```bash
-php artisan key:generate
-```
-
-### フロントエンドの変更が反映されない
-
-開発中は `npm run dev` が起動していることを確認してください。本番用アセットを確認する場合は、再度ビルドします。
-
-```bash
-npm run build
-```
-
-### キャッシュされた設定を消去したい
-
-```bash
-php artisan optimize:clear
-```
-
-## 家計簿API
-
-共通MySQL向けの家計簿テーブルとAPI v1を追加しています。[DB設計・API仕様](docs/household-api.md)を参照してください。Docker環境では環境リポジトリのREADMEに従って起動します。
+このリポジトリのDockerfileでAPIをデプロイし、既存APP_KEYとDB環境変数を維持します。新しいマイグレーションはデプロイ環境から `php artisan migrate --force` を実行してください。クレカ用テーブルの追加であり、既存の家計簿データは移動・削除しません。画面のDockerfileは各SPAリポジトリにあります。

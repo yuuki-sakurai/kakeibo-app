@@ -1,6 +1,6 @@
 # 家計簿DB設計とAPI v1
 
-既存Laravelに家計簿APIを追加する。クレカ管理画面は同じLaravelに維持し、家計簿フロントとはJSON APIで接続する。DBは既存MySQLの `kakeibo` を共通利用する。
+既存Laravelに家計簿APIを追加する。クレカ管理画面は独立したcredit-card-frontへ分離し、両SPAから同じLaravelのJSON APIへ接続する。DBは既存MySQLの `kakeibo` を共通利用する。
 
 ## ER構成
 
