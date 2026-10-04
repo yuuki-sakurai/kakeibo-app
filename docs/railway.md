@@ -3,7 +3,7 @@
 Laravel 13 / PHP 8.4 FPM / nginx / MySQL を想定しています。
 composer.lock に PHP >=8.4.1 の依存関係があるため PHP 8.4 を使用します。
 Node.js・Vite は実行せず、nginx は `/api/*` と `/up` のみ Laravel に渡します。
-`/` は 404 が正常です。既存のフロントコードやローカル開発設定は変更しません。
+標準Dockerイメージのnginxでは `/` は404です。開発構成・`composer dev` ではLaravelの `/` ルートがAPIサービス情報を返します。家計簿とCardDockの画面はそれぞれのSPAリポジトリで配信します。
 
 ## Railway の設定
 
@@ -46,10 +46,9 @@ FRONTEND_ORIGINS=https://app.example.com
 ```
 
 APP_KEY はローカルの Laravel 環境で `php artisan key:generate --show` を実行し、表示された値を一度だけ登録します。再デプロイごとに生成し直さないでください。
-SESSION_DOMAIN は通常未設定（APIホスト限定）で構いません。
-現在のAPIはセッションCookie認証です。同じ独自ドメイン配下の `app.example.com` と `api.example.com` を推奨します。
-Pages のドメインと Railway のドメインなど別サイト間では `SESSION_SAME_SITE=none` が必要ですが、ブラウザの第三者Cookie制限で動かない場合があります。
-フロントのAPI通信には credentials の送信設定と既存APIのCSRFトークン対応が必要です。
+SESSION_DOMAIN は未設定にします。フロントのプロキシ経由ではブラウザがアクセスするフロントホストのCookieとして扱われるため、APIホスト名を指定しません。
+現在のAPIはセッションCookie認証です。両SPAのDockerfileは `/api/v1` を利用し、フロントnginxが `BACKEND_HOST` のLaravel公開HTTPSホストへ転送する同一オリジン構成です。ブラウザが直接別サイトのAPIに接続する構成では第三者Cookie制限の影響を受けるため、このプロキシ構成を維持してください。
+フロントのAPIクライアントはcredentialsとCSRFトークンの送信に対応しています。別ドメインのSPA間でログイン状態を自動共有するSSOは未実装です。
 
 QUEUE_CONNECTION=sync はジョブをリクエスト内で実行します。非同期処理が必要になったら別 worker サービスを用意してください。
 コンテナ内のアップロードファイルは再デプロイで失われるため、永続ファイル保存が必要になったら S3 等を設定してください。
@@ -73,6 +72,6 @@ APIの `GET /api/v1/auth/session` でもDB・セッションを含む疎通を�
 - 起動時に設定・ルートキャッシュを作成します。ビルド時の APP_KEY や DB 接続は不要です。
 - nginx または PHP-FPM が終了するとコンテナ全体を終了させます。Railway の再起動ポリシーも設定してください。
 - PHP-FPM はリクエスト時に worker を起動し、最大5プロセスです。負荷・メモリ使用量に応じて調整してください。
-- 共通Backendへの移行に影響するアプリケーション/APIの変更はありません。
+- 認証・家計簿・月予算・クレカAPIとDBマイグレーションはこの共通バックエンドで管理します。
 
 公式ドキュメント: https://docs.railway.com/builds/dockerfiles / https://docs.railway.com/deployments/healthchecks
